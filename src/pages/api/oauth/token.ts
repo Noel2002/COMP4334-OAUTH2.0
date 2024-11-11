@@ -1,7 +1,6 @@
 import prisma from "@/utils/prisma";
 import { NextApiRequest, NextApiResponse } from "next";
 import jwt from 'jsonwebtoken'
-import { error } from "console";
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
     const { client_id, redirect_uri, scope, state, client_secret, code } = req.body;
@@ -55,7 +54,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const private_key = process.env.PRIVATE_KEY;
     if(!private_key) {
-        error("Private key not found");
+        console.error("Private key not found");
         return res.status(500).json({message: "Internal server error"});
     }
     const accessToken = jwt.sign({userId: session.userId}, private_key, {expiresIn: '1d', algorithm: 'RS256'});

@@ -10,14 +10,21 @@ const Login = () => {
     const clientId = params.get('client_id');
     const scope = params.get('scope');
     const state = params.get('state');
+    const responseType = params.get('response_type');
     const router = useRouter();
     const [username, setUsername] = React.useState('');
     const [password, setPassword] = React.useState('');
     const handleLogin = async () => {
         try {
-            const res = await axios.post('/api/oauth/code', { username, password, client_id: clientId, scope, state, redirect_uri: redirectUri });
-            const { authCode } = res.data;
-            router.push(`${redirectUri}?code=${authCode}`);
+            const res = await axios.post('/api/oauth/authenticate', { username, password, client_id: clientId, scope, state, redirect_uri: redirectUri, response_type: responseType });
+            if(responseType === 'code'){
+                const { authCode } = res.data;
+                router.push(`${redirectUri}?code=${authCode}`);
+            }
+            else if (responseType === 'token') {
+                const {access_token, expires_in, token_type, scope} = res.data;
+                router.push(`${redirectUri}#access_token=${access_token}&expires_in=${expires_in}&token_type=${token_type}&scope=${scope}`);
+            }
             
         } catch (error) {
             console.error(error);
