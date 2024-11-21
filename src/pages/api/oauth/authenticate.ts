@@ -9,7 +9,7 @@ export default async function handler(
 ) {
     if(req.method == "POST"){
         try {
-            const { username, password, redirect_uri, scope, state, client_id, response_type } = req.body;
+            const { username, password, redirect_uri, scope, state, client_id, response_type, code_challenge } = req.body;
 
             if(!username || !password || !redirect_uri || !scope || !state || !client_id || !response_type){
                 return res.status(400).json({ message: "Missing parameters" });
@@ -21,10 +21,10 @@ export default async function handler(
                 return res.status(401).json({ message: "Invalid client" });
             }
     
-            if(client.redirectUri !== redirect_uri) {
-                console.error("Invalid redirect uri");
-                return res.status(401).json({ message: "Invalid redirect uri" });
-            }
+            // if(client.redirectUri !== redirect_uri) {
+            //     console.error("Invalid redirect uri");
+            //     return res.status(401).json({ message: "Invalid redirect uri" });
+            // }
     
             const user = await prisma.user.findUnique({
                 where: {
@@ -53,7 +53,8 @@ export default async function handler(
                         scope,
                         status: "UNUSED",
                         state,
-                        expiresAt: new Date(Date.now() + 1000 * 60 * 5) // 5 minutes
+                        expiresAt: new Date(Date.now() + 1000 * 60 * 5), // 5 minutes,
+                        challenge: code_challenge
                     }
                 });
 

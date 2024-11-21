@@ -36,4 +36,5 @@ model Session {
   expiresAt DateTime
   scope String
   state String
+  challenge String?
 }
