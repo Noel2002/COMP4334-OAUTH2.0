@@ -15,12 +15,12 @@ export default async function handler(
             console.error("Invalid client");            
             return res.status(401).json({ message: "Invalid client" });
         }
-
+/*
         if(client.redirectUri !== redirect_uri) {
             console.error("Invalid redirect uri");
             return res.status(401).json({ message: "Invalid redirect uri" });
         }
-
+*/
         const user = await prisma.user.findUnique({
             where: {
                 username
