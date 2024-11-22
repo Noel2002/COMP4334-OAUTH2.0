@@ -17,7 +17,7 @@ const Login = () => {
         try {
             const res = await axios.post('/api/oauth/code', { username, password, client_id: clientId, scope, state, redirect_uri: redirectUri });
             const { authCode } = res.data;
-            router.push(`${redirectUri}?code=${authCode}`);
+            router.push(`${redirectUri}?code=${authCode}&state=${state}`);
             
         } catch (error) {
             console.error(error);
