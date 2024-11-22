@@ -78,7 +78,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         console.error("Private key not found");
         return res.status(500).json({message: "Internal server error"});
     }
-    const accessToken = jwt.sign({userId: session.userId}, private_key, {expiresIn: '1d', algorithm: 'RS256'});
+    const accessToken = jwt.sign({userId: session.userId, sub: session.userId, scope: session.scope}, private_key, {expiresIn: '1d', algorithm: 'RS256'});
 
     return res.status(200).json({
         access_token: accessToken,
