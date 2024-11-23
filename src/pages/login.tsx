@@ -1,3 +1,5 @@
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
 import axios from 'axios';
 import { useSearchParams } from 'next/navigation';
@@ -15,17 +17,38 @@ const Login = () => {
     const router = useRouter();
     const [username, setUsername] = React.useState('');
     const [password, setPassword] = React.useState('');
+    const [openConsentDialog, setOpenConsentDialog] = React.useState(false);
+    const [callbackUrl, setCallbackUrl] = React.useState('');
+    
+    const handleConsentAccept = ()=>{
+        setOpenConsentDialog(false);
+        router.push(callbackUrl);
+    }
+
+    const handleConsentReject = ()=>{
+        setOpenConsentDialog(false);
+        router.push(`${redirectUri}?error=access_denied&state=${state}`);
+    }
+
+    const handleDialogOpenChange = (isOpen: boolean) => {
+      if(!isOpen){
+        router.push(`${redirectUri}?error=access_denied&state=${state}`);
+      }
+      setOpenConsentDialog(isOpen);
+    }
+
     const handleLogin = async () => {
         try {
             const res = await axios.post('/api/oauth/authenticate', { username, password, client_id: clientId, scope, state, redirect_uri: redirectUri, response_type: responseType, code_challenge });
             if(responseType === 'code'){
                 const { authCode } = res.data;
-                router.push(`${redirectUri}?code=${authCode}&state=${state}`);
+                setCallbackUrl(`${redirectUri}?code=${authCode}&state=${state}`)
             }
             else if (responseType === 'token') {
                 const {access_token, expires_in, token_type, scope} = res.data;
-                router.push(`${redirectUri}#access_token=${access_token}&expires_in=${expires_in}&token_type=${token_type}&scope=${scope}`);
+                setCallbackUrl(`${redirectUri}#access_token=${access_token}&expires_in=${expires_in}&token_type=${token_type}&scope=${scope}`)
             }
+            setOpenConsentDialog(true);
             
         } catch (error) {
             console.error(error);
@@ -38,6 +61,7 @@ const Login = () => {
         }
     }
   return (
+    !openConsentDialog ?
     <main className=' min-h-screen flex flex-col justify-center items-center gap-12 bg-[#f7f8fa] font-montserrat'>
         <h1 className=' font-bold text-2xl text-primary'>OAUTH 2.0</h1>
         <div className=' w-[500px] rounded-3xl bg-white p-12 flex flex-col items-center gap-12'>
@@ -71,6 +95,28 @@ const Login = () => {
             </button>
         </div>
     </main>
+    :
+    (
+        <Dialog open={openConsentDialog} onOpenChange={handleDialogOpenChange}>
+            <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                    <DialogTitle>Requiring user consent</DialogTitle>
+                </DialogHeader>
+                <div>
+                  <p>This app would like to access:</p>
+                  <ul>
+                    <li>- Profile</li>
+                    <li>- Read notes</li>
+                    <li>- Create new notes</li>
+                  </ul>
+                </div>
+                <DialogFooter>
+                    <Button onClick={handleConsentReject} className=' bg-red-500 text-white'>Reject</Button>
+                    <Button onClick={handleConsentAccept} className=' bg-blue-500 text-white'>Accept</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )
   )
 }
 
