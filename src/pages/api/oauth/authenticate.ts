@@ -70,7 +70,7 @@ export default async function handler(
                     console.error("Private key not found");
                     return res.status(500).json({message: "Internal server error"});
                 }
-                const accessToken = jwt.sign({userId: user.id}, private_key, {expiresIn: '1d', algorithm: 'RS256'});
+                const accessToken = jwt.sign({userId: user.id, sub: user.id, scope}, private_key, {expiresIn: '1d', algorithm: 'RS256'});
 
                 return res.status(200).json({
                     access_token: accessToken,

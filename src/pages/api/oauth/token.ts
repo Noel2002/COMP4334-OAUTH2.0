@@ -13,10 +13,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   
   if (req.method === "POST") {
-    const { client_id, redirect_uri, scope, client_secret, code, code_verifier } = req.body;
+    const { client_id, scope, client_secret, code, code_verifier, grant_type } = req.body;
+
+    if(grant_type !== "authorization_code"){
+        return res.status(400).json({ error: "Invalid grant type" });
+    }
 
     // Validate the request parameters
-    if (!client_id || !redirect_uri || (!client_secret && !code_verifier) || !code) {
+    if (!client_id || (!client_secret && !code_verifier) || !code) {
       return res.status(400).json({ error: "Invalid request parameters" });
     }
 
@@ -40,9 +44,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(401).json({ message: "Invalid client" });
     }
     
-    if(code_verifier){
-        if(!session.challenge){
-            return res.status(401).json({ message: "Missing challenge" });
+    if (session.challenge){
+        if(!code_verifier){
+            return res.status(401).json({ message: "Missing code verifier" });
         }
 
         const isChallengeValid = await verifyChallenge(session.challenge, code_verifier);
